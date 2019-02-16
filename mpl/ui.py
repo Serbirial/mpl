@@ -31,5 +31,3 @@ class MainUi():
 	def reload_theme():
 		pass
 
-print_ui = MainUi.print_ui
-reload_theme = MainUi.reload_theme

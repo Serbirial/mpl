@@ -2,5 +2,5 @@ python-vlc==3.0.4106
 librosa
 psutil
 click
-termios
-atexit
+colorama
+psutil

@@ -24,7 +24,9 @@ client_id = '495106015273025546'
 
 class MainPlayer:
 	def __init__(self):
-		self.songs = other.get_songs()
+		self.ui = ui.MainUi
+		self.other = other.Helper
+		self.songs = self.other.get_songs()
 		self.rpc = False
 		if config.discord_rpc:
 			try:
@@ -47,7 +49,6 @@ class MainPlayer:
 				time.sleep(2)
 
 		self.vlc_instance = vlc.Instance()
-		self.ui = ui
 		self.paused = False
 		self.cache = {
 			"main": "Null - You should not see this at all",
@@ -130,7 +131,7 @@ class MainPlayer:
 		os.system('cls' if os.name == 'nt' else 'clear')
 		if os.name != "nt": print("\033]2;Media player : Idling\007")
 		if self.cache['repeat'] == "True" and self.cache['repeat_cache']["last_song"] is not None:
-			return self.play(other.get_song_from_id(self.cache['repeat_cache']["last_song"]))
+			return self.play(self.other.get_song_from_id(self.cache['repeat_cache']["last_song"]))
 		if self.rpc is not False: self.rpc_connection.update(large_image="mpl", details="Idle",state=f"Idle")
 		print(self.songs)
 		print("Please input a number next to the song you want to play")
@@ -146,12 +147,12 @@ class MainPlayer:
 				self.cache['repeat_cache']["last_song"] = None
 		if "/refresh" in song:
 			print("Refreshing")
-			self.songs = other.get_songs()
+			self.songs = self.other.get_songs()
 			time.sleep(1)
 			print("Refreshed songs")
 			time.sleep(2)
 			self.clsprg()
-		get_song = other.get_song_from_id(song)
+		get_song = self.other.get_song_from_id(song)
 		if get_song is None:
 			print(" Not a valid song id")
 			print(" Or that song was not found")

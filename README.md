@@ -1,4 +1,5 @@
-# MPL
+## MPL
+[YOU NEED TO HAVE VLC INSTALLED](https://www.videolan.org/index.html)
 * add songs to [songs/](songs/)
 * python3 util.py
 * press 1 to add the songs

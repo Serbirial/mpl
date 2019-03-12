@@ -1,5 +1,5 @@
 from mpl import player
-import os
+import os, sys
 
 if os.name != "nt": print("\033]2;Media player : idle\007")
 #import stackimpact
@@ -10,4 +10,3 @@ if os.name != "nt": print("\033]2;Media player : idle\007")
 #
 #with agent.profile('span1'):
 player.start()
-

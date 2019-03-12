@@ -1,4 +1,4 @@
-import os
+import os, sys
 import config
 import textwrap
 
@@ -10,13 +10,17 @@ if config.themes:
 
 class MainUi():
 
+	def print(*content):
+		sys.stdout.write(str(*content))
+		sys.stdout.flush()
 
 	def print_ui(cache=None):
 		if cache is None:
 			return False
 		os.system('cls' if os.name == 'nt' else 'clear')
 		# oh b o y   this is going to look bad
-		ui = f"""
+		if color_theme:
+			ui = f"""
 {color_theme.colors["other"] if config.themes is not None else None}{cache["other"]} {color_theme.colors["other2"] if config.themes is not None else None}
 {color_theme.colors["main"] if config.themes is not None else None}{cache["main"]} {color_theme.colors["main2"] if config.themes is not None else None}
 {color_theme.colors["volume"] if config.themes is not None else None}Volume -> {cache["volume"]} {color_theme.colors["volume2"] if config.themes is not None else None}
@@ -26,8 +30,19 @@ class MainUi():
 
 {color_theme.colors["time"]}{cache["time"]}{color_theme.colors["time2"]}
 """
+		else:
+			ui = f"""
+{cache["other"]}
+{cache["main"]}
+Volume -> {cache["volume"]}
+Repeating -> {cache["repeat"]}
+{cache["keys"]}
+{cache["playing"]}
+
+{cache["time"]}
+"""
 		print(ui)
 
 	def reload_theme():
 		pass
-
+	

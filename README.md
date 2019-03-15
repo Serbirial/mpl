@@ -6,7 +6,11 @@
 * press 2 and mass download urls
 * python3 go.py
 
+**THIS DOES NOT WORK ON WINDOWS**
+
 ## In use
 ![Selecting](pictures/selecting.png)
 
 ![Playing](pictures/playing.png)
+
+

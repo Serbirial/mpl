@@ -6,7 +6,8 @@
 * press 2 and mass download urls
 * python3 go.py
 
-**THIS DOES NOT WORK ON WINDOWS**
+~~**THIS DOES NOT WORK ON WINDOWS**~~
+It does work on windows, it just takes a little work.
 
 ## In use
 ![Selecting](pictures/selecting.png)

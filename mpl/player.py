@@ -1,7 +1,9 @@
 import os, sys
 import time, datetime
 
-#if os.name == 'nt':
+if os.name == 'nt':
+	sys.stdout.write("Expect alot of errors from vlc...\n")
+	time.sleep(2)
 #	self.ui.print('Sorry windows is not supported, if you still want to try to get around the error comment out these lines\n')
 #	self.ui.print('Exiting...\n')
 #	time.sleep(6)
@@ -122,11 +124,9 @@ class MainPlayer:
 				if c=="r":
 					if self.cache["repeat"]=="False":
 						self.cache["repeat"] = "True"
-						self.cache["other"] = "Next song will loop"
 						pass
 					elif self.cache["repeat"]=="True":
 						self.cache["repeat"] = "False"
-						self.cache["other"] = "Next song will not loop"
 						self.cache['repeat_cache']["last_song"] = None
 						pass
 				elif c=="q":
@@ -152,14 +152,14 @@ class MainPlayer:
 		self.ui.print("\nPlease input a number next to the song you want to play")
 		
 		song = input("   -> ")
+		if "exit" in song: # TODO: use a tuple ?
+			self.exit()
 		if "/repeat" in song:
 			song = song.split(" /repeat")[0]
 			if self.cache["repeat"]=="False":
 				self.cache["repeat"] = "True"
-				self.cache["other"] = "Next song will loop"
 			elif self.cache["repeat"]=="True":
 				self.cache["repeat"] = "False"
-				self.cache["other"] = "Next song will not loop"
 				self.cache['repeat_cache']["last_song"] = None
 		if "/refresh" in song:
 			self.ui.print("Refreshing\n")
@@ -179,6 +179,11 @@ class MainPlayer:
 		elif get_song is not None:
 			self.cache['repeat_cache']["last_song"] = str(song)
 			return self.play(get_song)
+
+	def exit(self): 
+		sys.stdout.write("\n\nExiting... please wait")
+		sys.exit(0)
+		
 
 def start():
 	try:

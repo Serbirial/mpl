@@ -1,4 +1,5 @@
 import sqlite3
+import os, sys
 from os import listdir, system
 import subprocess
 import time
@@ -48,33 +49,34 @@ def manually_insert_song():
 	con = sqlite3.connect('database.db')
 	cur = con.cursor()
 	for file in listdir('songs'):
-		cur.execute('SELECT path FROM songs WHERE path=?',("./songs/"+file,))
-		rows = cur.fetchall()
-		if len(rows) != 0:
-			print("This song is already in the database ", file)
-			pass
-		elif len(rows) == 0:
-			name = input("song name for "+ file+" > ")
-			author = input("author for "+ file+" > ")
-			length = get_duration("./songs/"+file)
-			cur.execute("SELECT * FROM songs ORDER BY CAST(id as INTEGER) DESC")
-			returned = cur.fetchone()
-			try:
-				id_ = int(returned[3]) + 1
-			except TypeError:
-				id_ = 1
-			print(f"{name} - {author} - {length} Id {id_}")
-			qui = input("Press ! to save > ")
-			if "!" in qui:
-				print(f"{name} - {author} - {length} {id_}")
-				print("Is this correct?")
-				print("5 seconds to force quit (ctrl+c) or i will save")
-				time.sleep(5)
+		try:
+			cur.execute('SELECT path FROM songs WHERE path=?',("./songs/"+file,))
+			rows = cur.fetchall()
+			if len(rows) != 0:
+				print("This song is already in the database ", file)
+				pass
+			elif len(rows) == 0:
+				name = input("song name for "+ file+" > ")
+				author = input("author for "+ file+" > ")
+				length = get_duration("./songs/"+file)
+				cur.execute("SELECT * FROM songs ORDER BY CAST(id as INTEGER) DESC")
+				returned = cur.fetchone()
+				try:
+					id_ = int(returned[3]) + 1
+				except TypeError:
+					id_ = 1
+				print(f"{name} - {author} - {length} Id {id_}")
+				qui = input("Press ! to save > ")
+				if "!" in qui:
+					print(f"{name} - {author} - {length} {id_}")
+					print("Is this correct?")
+					print("5 seconds to force quit (ctrl+c) or i will save")
+					time.sleep(5)
 
 				cur.execute('INSERT INTO songs VALUES (?,?,?,?,?)', (str(name), str(author), str(length), str(id_), str("./songs/"+file),))
 				con.commit()
 				pass
-
+		except EOFError: print("Not a valid audio file"); pass
 	con.close()
 
 
@@ -107,7 +109,9 @@ def mass_download(urls):
 	"""wow this is broken - pls nerf"""
 	for url in urls:
 		print("Downloading ", url)
-		system(f"youtube-dl -o './songs/%(title)s.%(ext)s' -x '{url}'")
+		if os.name == 'nt':
+			sys.stdout.write('ATTENTION :: You will need to move the files from \'#\\songs\ to \songs\\')
+		system(f"youtube-dl -o './songs/%(title)s.%(ext)s' -x {url}")
 
 if __name__ == "__main__":
 	a = input("1 - add new songs to database\n2 - mass download urls (the audio from urls\n ->")

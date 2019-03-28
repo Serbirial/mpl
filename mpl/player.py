@@ -1,11 +1,11 @@
 import os, sys
 import time, datetime
 
-if os.name == 'nt':
-	self.ui.print('Sorry windows is not supported, if you still want to try to get around the error comment out these lines\n')
-	self.ui.print('Exiting...\n')
-	time.sleep(6)
-	sys.exit(0)
+#if os.name == 'nt':
+#	self.ui.print('Sorry windows is not supported, if you still want to try to get around the error comment out these lines\n')
+#	self.ui.print('Exiting...\n')
+#	time.sleep(6)
+#	sys.exit(0)
 
 import vlc, librosa
 import sqlite3

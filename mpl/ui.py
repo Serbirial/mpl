@@ -8,13 +8,15 @@ if config.themes:
 	if os.name == "nt": init_color(convert=True)
 	color_theme = config.theme_import
 
-class MainUi():
+class MainUi:
+	def __init__(self):
+		pass
 
-	def print(*content):
+	def print(self, *content, flush=False):
 		sys.stdout.write(str(*content))
-		sys.stdout.flush()
+		if flush:sys.stdout.flush()
 
-	def print_ui(cache=None):
+	def show_ui(self, cache=None):
 		if cache is None:
 			return False
 		os.system('cls' if os.name == 'nt' else 'clear')
@@ -41,8 +43,8 @@ Repeating -> {cache["repeat"]}
 
 {cache["time"]}
 """
-		print(ui)
+		self.print(ui, flush=True)
 
-	def reload_theme():
+	def reload_theme(self):
 		pass
 	

@@ -2,7 +2,9 @@ import sqlite3
 
 
 class Helper:
-    def get_songs():
+    def __init__(self):
+        pass
+    def get_songs(self):
         returned = ''
         con = sqlite3.connect('database.db')
         cur = con.cursor()  # handles requests made to the database
@@ -19,7 +21,7 @@ class Helper:
         con.close()
         return returned
 
-    def get_song_from_id(id):
+    def get_song_from_id(self, id):
         con = sqlite3.connect('database.db')
         cur = con.cursor()  # handles requests made to the database
         cur.execute('SELECT * FROM songs WHERE id=?', (id, ))

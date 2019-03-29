@@ -37,8 +37,9 @@ def get_song_from_id(id):
 	elif len(rows) != 0:
 		try:
 			dictr = {
-			"name": returned[0] +" by "+ returned[1],
-			"path": returned[4]}
+			"name": returned[0]+" by "+returned[1],
+			"path": returned[4]
+			}
 			return dictr
 		except:
 			return None
@@ -56,8 +57,8 @@ def manually_insert_song():
 				print("This song is already in the database ", file)
 				pass
 			elif len(rows) == 0:
-				name = input("song name for "+ file+" > ")
-				author = input("author for "+ file+" > ")
+				name = input("song name for "+file+" > ")
+				author = input("author for "+file+" > ")
 				length = get_duration("./songs/"+file)
 				cur.execute("SELECT * FROM songs ORDER BY CAST(id as INTEGER) DESC")
 				returned = cur.fetchone()
@@ -68,10 +69,9 @@ def manually_insert_song():
 				print(f"{name} - {author} - {length} Id {id_}")
 				qui = input("Press ! to save > ")
 				if "!" in qui:
-					print(f"{name} - {author} - {length} {id_}")
+					print(f"Name -> {name} Author -> {author} Length -> {length} Id -> {id_}")
 					print("Is this correct?")
-					print("5 seconds to force quit (ctrl+c) or i will save")
-					time.sleep(5)
+					input("Press enter to pass (CTRL+C to stop)")
 
 				cur.execute('INSERT INTO songs VALUES (?,?,?,?,?)', (str(name), str(author), str(length), str(id_), str("./songs/"+file),))
 				con.commit()
@@ -81,11 +81,13 @@ def manually_insert_song():
 
 
 def get_duration(url):
-		duration = librosa.core.get_duration(filename=url)
+		duration = librosa.core.get_duration(filename=url) # Raises EOFError if it is not a valid audio file
 		duration_human = "%02d:%02d" % divmod(duration, 60)
 		return str(duration_human)
 
 def update_already_done():
+	""" This has no use, do not use it. """
+	return
 	con = sqlite3.connect('database.db')
 	cur = con.cursor() # handles requests made to the database
 	id_ = 1
@@ -110,21 +112,26 @@ def mass_download(urls):
 	for url in urls:
 		print("Downloading ", url)
 		if os.name == 'nt':
-			sys.stdout.write('ATTENTION :: You will need to move the files from \'#\\songs\ to \songs\\')
-		system(f"youtube-dl -o './songs/%(title)s.%(ext)s' -x {url}")
+			sys.stdout.write('ATTENTION :: You might need to move the files from \'#\\songs\ to \songs\\')
+			system(f"youtube-dl -o /songs/%(title)s.%(ext)s -x {url}")
+		else:
+			system(f"youtube-dl -o './songs/%(title)s.%(ext)s' -x '{url}'")
 
 if __name__ == "__main__":
-	a = input("1 - add new songs to database\n2 - mass download urls (the audio from urls\n ->")
-	if "1" in a:
-		manually_insert_song()
-	elif "2" in a:
-		print("Please paste the urls (seperated by a space) ->")
-		urls = input()
-		urlss = []
-		split = urls.split(" ")
-		for url in split:
-			urlss.append(url)
-		print(urlss)
-		input("press enter to continue")
-		mass_download(urlss)
-	else: print("wrong")
+	while 1:
+		a = input("1 - add new songs to database\n2 - mass download urls (the audio from urls\n3 - quit\n ->")
+		if "1" in a:
+			manually_insert_song()
+		elif "2" in a:
+			print("Please paste the urls (seperated by a space) ->")
+			urls = input()
+			urlss = []
+			split = urls.split(" ")
+			for url in split:
+				urlss.append(url)
+			print(urlss)
+			input("press enter to continue")
+			mass_download(urlss)
+		elif '3' in a:
+			break
+		else: pass

@@ -3,9 +3,9 @@ import time, datetime
 
 if os.name == 'nt':
 	sys.stdout.write("Expect alot of errors from vlc...\n")
-	time.sleep(2)
-#	self.ui.print('Sorry windows is not supported, if you still want to try to get around the error comment out these lines\n')
-#	self.ui.print('Exiting...\n')
+	time.sleep(0.5)
+#	self.print('Sorry windows is not supported, if you still want to try to get around the error comment out these lines\n')
+#	self.print('Exiting...\n')
 #	time.sleep(6)
 #	sys.exit(0)
 
@@ -26,12 +26,11 @@ Instructions:
 """
 client_id = '495106015273025546'
 
-class MainPlayer:
+class MainPlayer(other.Helper,ui.MainUi):
 	vlc_instance = vlc.Instance()
 	def __init__(self):
-		self.ui = ui.MainUi
-		self.other = other.Helper
-		self.songs = self.other.get_songs()
+		super().__init__()
+		self.songs = self.get_songs()
 		self.rpc = False
 		if config.discord_rpc:
 			try:
@@ -42,14 +41,13 @@ class MainPlayer:
 					self.rpc_connection.connect()
 					self.rpc_connection.update(large_image="mpl", details="Just loaded",state=f"Idle")
 				except FileNotFoundError:
-					self.ui.print("Discord is not open or not installed (you must have the client not the web version)")
-					
+					self.print("Discord is not open or not installed (you must have the client not the web version)", flush=True)
+					self.print("If the discord client is open and it still says this, check if you have another rpc (That might be the cause)\nOr restart discord", flush=True)
 					config.discord_rpc = False
 					self.rpc = False
 					time.sleep(2)
 			except ImportError:
-				self.ui.print("pypresence is not installed (pip install pypresence)")
-				
+				self.print("pypresence is not installed (pip install pypresence)")
 				self.rpc = False
 				time.sleep(2)
 		self.uinp = uinp.KBHit()
@@ -72,13 +70,13 @@ class MainPlayer:
 		self.input_loop.name = 'Input Thread'
 		self.playing = False
 	def play(self, url):
-		self.ui.print("\n")
-		
+		self.print("\n")
 		if not self.input_loop.is_alive():
-			self.input_loop.start()
+			self.input_loop.start() # if the input loop is dead restart it
 		song = url["path"]
 		name = url["name"]
-		self.ui.print("\033]2;Media player : Playing "+name+"\007")
+		if os.name != 'nt':
+			self.print("\033]2;Media player : Playing "+name+"\007")
 		
 		vlc_instance = self.vlc_instance
 		player = self.player
@@ -112,7 +110,7 @@ class MainPlayer:
 					return self.clsprg()
 				if self.paused is False: self.cache["time"] = f"Time left -> {duration_left}/{duration_human}"
 				if self.rpc is not False: self.rpc_connection.update(large_image="mpl", details=""+name+" Length: "+duration_human,state=f"{duration_left}/{duration_human}")
-				self.ui.print_ui(self.cache)
+				self.show_ui(self.cache)
 				time.sleep(1)
 
 
@@ -133,7 +131,7 @@ class MainPlayer:
 					self.playing = False
 					self.cache['repeat_cache']["last_song"] = None
 				elif c=="p":
-					self.ui.print_ui(self.cache)
+					self.show_ui(self.cache)
 					
 					if self.player.is_playing():
 						self.paused = True
@@ -144,16 +142,29 @@ class MainPlayer:
 	def clsprg(self):
 		"""Clear screen, print, Go"""
 		os.system('cls' if os.name == 'nt' else 'clear')
-		self.ui.print("\033]2;Media player : Idling\007")
+		if os.name != 'nt':
+			self.print("\033]2;Media player : Idling\007")
 		if self.cache['repeat'] == "True" and self.cache['repeat_cache']["last_song"] is not None:
-			return self.play(self.other.get_song_from_id(self.cache['repeat_cache']["last_song"]))
+			return self.play(self.get_song_from_id(self.cache['repeat_cache']["last_song"]))
 		if self.rpc is not False: self.rpc_connection.update(large_image="mpl", details="Idle",state=f"Idle")
-		self.ui.print(self.songs)
-		self.ui.print("\nPlease input a number next to the song you want to play")
+		self.print(self.songs)
+		self.print("\nPlease input a number next to the song you want to play")
 		
 		song = input("   -> ")
 		if "exit" in song: # TODO: use a tuple ?
 			self.exit()
+		if "help" in song:
+			self.print(" \
+When selecting a song:\n \
+	/repeat -> repeat the song you plan on playing ex: {song_id} /repeat\n \
+	/help -> shows this message\n \
+	/refresh \n \
+When playing a song:\n \
+	r -> Turn repeat on/off\n \
+	q -> quit the current song\n \
+	p -> Pause the current song", flush=True)
+			input("\nPress enter to continue")
+			return self.clsprg()
 		if "/repeat" in song:
 			song = song.split(" /repeat")[0]
 			if self.cache["repeat"]=="False":
@@ -162,17 +173,17 @@ class MainPlayer:
 				self.cache["repeat"] = "False"
 				self.cache['repeat_cache']["last_song"] = None
 		if "/refresh" in song:
-			self.ui.print("Refreshing\n")
-			self.songs = self.other.get_songs()
+			self.print("Refreshing", flush=True)
+			self.songs = self.get_songs()
 			time.sleep(1)
-			self.ui.print("Refreshed songs")
+			self.print("Refreshed songs")
 			
 			time.sleep(2)
 			self.clsprg()
-		get_song = self.other.get_song_from_id(song)
+		get_song = self.get_song_from_id(song)
 		if get_song is None:
-			self.ui.print(" Not a valid song id\n")
-			self.ui.print(" Or that song was not found")
+			self.print(" Not a valid song id", flush=True)
+			self.print(" Or that song was not found", flush=True)
 			
 			time.sleep(2)
 			self.clsprg()

@@ -1,6 +1,6 @@
 colors = {
-    "other": "",
-    "other2": "",
+    "other": "\033[01;34m",
+    "other2": "\033[00m",
     "main": "",
     "main2": "",
     "volume": "",

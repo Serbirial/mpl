@@ -7,6 +7,7 @@
 * python3 go.py
 
 ~~**THIS DOES NOT WORK ON WINDOWS**~~
+
 It does work on windows, it just takes a little work.
 
 ## In use

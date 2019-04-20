@@ -31,7 +31,8 @@ class MainUi:
 {color_theme.colors["playing"] if config.themes is not None else None}{cache["playing"]} {color_theme.colors["playing2"] if config.themes is not None else None}
 
 {color_theme.colors["time"]}{cache["time"]}{color_theme.colors["time2"]}
-"""
+
+	-> {cache["_typed"]}"""
 		else:
 			ui = f"""
 {cache["other"]}
@@ -42,7 +43,8 @@ Repeating -> {cache["repeat"]}
 {cache["playing"]}
 
 {cache["time"]}
-"""
+
+	-> {cache["_typed"]}"""
 		self.print(ui, flush=True)
 
 	def reload_theme(self):

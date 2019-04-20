@@ -1,6 +1,6 @@
 colors = {
-    "other": "\033[01;34m",
-    "other2": "\033[00m",
+    "other": "",
+    "other2": "",
     "main": "",
     "main2": "",
     "volume": "",
@@ -13,6 +13,8 @@ colors = {
     "playing2": "\033[00m",
     "time": "\033[01;32m",
     "time2": "\033[00m",
+    "input_arrow": "\033[01;34m",
+    "input_arrow2": "\033[00m",
 }
 
 

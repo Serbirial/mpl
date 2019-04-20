@@ -2,6 +2,7 @@ import os, sys
 import time, datetime
 
 if os.name == 'nt':
+	# Now supports windows, comes with a basket full of bugs.
 	sys.stdout.write("Expect alot of errors from vlc...\n")
 	time.sleep(0.5)
 #	self.print('Sorry windows is not supported, if you still want to try to get around the error comment out these lines\n')
@@ -19,11 +20,6 @@ import asyncio
 import config
 from . import other, ui, uinp
 import util
-instr = """
-Instructions:
-	Press esc to stop
-	Press space bar to pause (press once again to unpause)
-"""
 client_id = '495106015273025546'
 
 class MainPlayer(other.Helper,ui.MainUi):
@@ -64,7 +60,8 @@ class MainPlayer(other.Helper,ui.MainUi):
 			"keys": "",
 			"repeat_cache": {
 				"last_song": None
-			}}
+			},
+			"_typed": ""}
 		self.input_loop = threading.Thread(target=self._input_loop)
 		self.input_loop.daemon = True
 		self.input_loop.name = 'Input Thread'
@@ -77,7 +74,6 @@ class MainPlayer(other.Helper,ui.MainUi):
 		name = url["name"]
 		if os.name != 'nt':
 			self.print("\033]2;Media player : Playing "+name+"\007")
-		
 		vlc_instance = self.vlc_instance
 		player = self.player
 		media  = vlc_instance.media_new(song)
@@ -132,13 +128,14 @@ class MainPlayer(other.Helper,ui.MainUi):
 					self.cache['repeat_cache']["last_song"] = None
 				elif c=="p":
 					self.show_ui(self.cache)
-					
 					if self.player.is_playing():
 						self.paused = True
 						self.player.pause()
 					else:
 						self.paused = False
 						self.player.play()
+				#if c is not None:
+				#	self.cache["_typed"] = f'{self.cache["_typed"]}{c}'
 	def clsprg(self):
 		"""Clear screen, print, Go"""
 		os.system('cls' if os.name == 'nt' else 'clear')

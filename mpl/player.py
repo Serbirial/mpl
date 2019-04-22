@@ -4,7 +4,6 @@ import time, datetime
 if os.name == 'nt':
 	# Now supports windows, comes with a basket full of bugs.
 	sys.stdout.write("Expect alot of errors from vlc...\n")
-	time.sleep(0.5)
 #	self.print('Sorry windows is not supported, if you still want to try to get around the error comment out these lines\n')
 #	self.print('Exiting...\n')
 #	time.sleep(6)
@@ -20,6 +19,8 @@ import asyncio
 import config
 from . import other, ui, uinp
 import util
+
+# Id for the discord rpc.
 client_id = '495106015273025546'
 
 class MainPlayer(other.Helper,ui.MainUi):
@@ -34,8 +35,8 @@ class MainPlayer(other.Helper,ui.MainUi):
 				from pypresence import Presence as pr
 				try:
 					self.rpc_connection = pr(client_id,pipe=0)
-					self.rpc_connection.connect()
-					self.rpc_connection.update(large_image="mpl", details="Just loaded",state=f"Idle")
+					self.rpc_connection.connect() 
+					self.rpc_connection.update(large_image=config.rpc_large_image, details="Just loaded",state=f"Idle")
 				except FileNotFoundError:
 					self.print("Discord is not open or not installed (you must have the client not the web version)", flush=True)
 					self.print("If the discord client is open and it still says this, check if you have another rpc (That might be the cause)\nOr restart discord", flush=True)
@@ -136,6 +137,7 @@ class MainPlayer(other.Helper,ui.MainUi):
 						self.player.play()
 				#if c is not None:
 				#	self.cache["_typed"] = f'{self.cache["_typed"]}{c}'
+				# will probably use this for linux.
 	def clsprg(self):
 		"""Clear screen, print, Go"""
 		os.system('cls' if os.name == 'nt' else 'clear')

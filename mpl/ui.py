@@ -21,7 +21,7 @@ class MainUi:
 			return False
 		os.system('cls' if os.name == 'nt' else 'clear')
 		# oh b o y   this is going to look bad
-		if color_theme:
+		if color_theme: # i need a better way to do this
 			ui = f"""
 {color_theme.colors["other"] if config.themes is not None else None}{cache["other"]} {color_theme.colors["other2"] if config.themes is not None else None}
 {color_theme.colors["main"] if config.themes is not None else None}{cache["main"]} {color_theme.colors["main2"] if config.themes is not None else None}

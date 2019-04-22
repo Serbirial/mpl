@@ -1,6 +1,8 @@
 # If you want a discord rpc then set this to True, if you do not want it, set it to false
 # YOU MUST HAVE THE DISCORD CLIENT INSTALLED
 discord_rpc = True
+# The image that will be used in the rpc.
+rpc_large_image = 'mpl'
 
 # Themes
 # When enabled it will try to print in the selected theme (or make your own based from theme_example.py)

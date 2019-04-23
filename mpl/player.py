@@ -24,7 +24,7 @@ import util
 client_id = '495106015273025546'
 
 class MainPlayer(other.Helper,ui.MainUi):
-	vlc_instance = vlc.Instance()
+	vlc_instance = vlc.Instance('-q')
 	def __init__(self):
 		super().__init__()
 		self.songs = self.get_songs()
@@ -86,7 +86,7 @@ class MainPlayer(other.Helper,ui.MainUi):
 		now = duration
 		duration_human = "%02d:%02d" % divmod(duration, 60)
 		self.cache["main"] = self.songs
-		self.cache["playing"] = "Current song is : "+name+" Length: "+duration_human
+		self.cache["playing"] = "Current song is : "+name+" ("+duration_human+")"
 		self.cache["other"] = " 	Song Loaded!"
 		if self.cache["repeat"]=="True":
 			self.cache["other"] += " 	Song is looped"

@@ -49,6 +49,7 @@ def get_song_from_id(id):
 def manually_insert_song():
 	con = sqlite3.connect('database.db')
 	cur = con.cursor()
+	perpage = 5
 	for file in listdir('songs'):
 		try:
 			cur.execute('SELECT path FROM songs WHERE path=?',("./songs/"+file,))
@@ -66,14 +67,22 @@ def manually_insert_song():
 					id_ = int(returned[3]) + 1
 				except TypeError:
 					id_ = 1
+				print("Setting page...")
+				startpage = cur.execute('SELECT page FROM SONGS ORDER BY CAST(page as INTEGER) DESC').fetchone()
+				if not startpage is None:
+					currentpage = int(startpage[0])
+				else:
+					currentpage = 0
+				songsinpage = len(cur.execute('SELECT page FROM SONGS WHERE page=? ORDER BY CAST(page as INTEGER)',(currentpage,)).fetchall())
+				if songsinpage >= perpage:	
+					print('PAGES LARGER THAN 5 (',str(songsinpage), ')')
+					currentpage += 1
+					print('NEW PAGE (', currentpage,')') 
 				print(f"{name} - {author} - {length} Id {id_}")
-				qui = input("Press ! to save > ")
-				if "!" in qui:
-					print(f"Name -> {name} Author -> {author} Length -> {length} Id -> {id_}")
-					print("Is this correct?")
-					input("Press enter to pass (CTRL+C to stop)")
-
-				cur.execute('INSERT INTO songs VALUES (?,?,?,?,?)', (str(name), str(author), str(length), str(id_), str("./songs/"+file),))
+				print(f"Name -> {name} Author -> {author} Length -> {length} Id -> {id_}")
+				print("Is this correct?")
+				input("Press enter to pass (CTRL+C to stop)")
+				cur.execute('INSERT INTO songs VALUES (?,?,?,?,?,?)', (str(name), str(author), str(length), str(id_), str("./songs/"+file), str(currentpage)))
 				con.commit()
 				pass
 		except EOFError: print("Not a valid audio file"); pass
@@ -117,6 +126,20 @@ def mass_download(urls):
 		else:
 			system(f"youtube-dl -o './songs/%(title)s.%(ext)s' -x '{url}'")
 
+def page_db():
+	con = sqlite3.connect('database.db')
+	cur = con.cursor()
+	PAGE = 0
+	CURRENT = 0
+	for song,author,id in cur.execute("SELECT song,author,id FROM songs").fetchall():
+		CURRENT += 1
+		if CURRENT >= 10:
+			PAGE += 1
+		print(f'{song} - {author} ({id}) {CURRENT} INTO THE DB NEW PAGE {PAGE}')
+		cur.execute('UPDATE songs SET page = ? WHERE id=?', (PAGE, id))
+	con.commit()
+	con.close()
+
 if __name__ == "__main__":
 	while 1:
 		a = input("1 - add new songs to database\n2 - mass download urls (the audio from urls\n3 - quit\n ->")
@@ -134,4 +157,6 @@ if __name__ == "__main__":
 			mass_download(urlss)
 		elif '3' in a:
 			break
+		elif '4' in a:
+			page_db()
 		else: pass

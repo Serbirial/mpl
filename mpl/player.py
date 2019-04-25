@@ -3,7 +3,7 @@ import time, datetime
 
 if os.name == 'nt':
 	# Now supports windows, comes with a basket full of bugs.
-	sys.stdout.write("Expect alot of errors from vlc...\n")
+	sys.stdout.write("You might get cache errors...\n")
 #	self.print('Sorry windows is not supported, if you still want to try to get around the error comment out these lines\n')
 #	self.print('Exiting...\n')
 #	time.sleep(6)
@@ -24,7 +24,7 @@ import util
 client_id = '495106015273025546'
 
 class MainPlayer(other.Helper,ui.MainUi):
-	vlc_instance = vlc.Instance('-q')
+	vlc_instance = vlc.Instance('-q') # Tries to stop the cache errors
 	def __init__(self):
 		super().__init__()
 		self.songs = self.get_songs()
@@ -63,16 +63,10 @@ class MainPlayer(other.Helper,ui.MainUi):
 				"last_song": None
 			},
 			"_typed": ""}
-		self.input_loop = threading.Thread(target=self._input_loop)
-		self.input_loop.daemon = True
-		self.input_loop.name = 'Input Thread'
 		self.playing = False
 	def play(self, url):
 		self.print("\n")
-		if not self.input_loop.is_alive():
-			self.input_loop.start() # if the input loop is dead restart it
-		song = url["path"]
-		name = url["name"]
+		song, name = url["path"], url["name"]
 		if os.name != 'nt':
 			self.print("\033]2;Media player : Playing "+name+"\007")
 		vlc_instance = self.vlc_instance
@@ -91,11 +85,13 @@ class MainPlayer(other.Helper,ui.MainUi):
 		if self.cache["repeat"]=="True":
 			self.cache["other"] += " 	Song is looped"
 		self.playing = True
+		self.check_input_loop() # check if its dead, if it is remake the thread.
 		# The main player loop that updates the ui and check for user input
 		while 1:
 			if not self.paused:
 				now -= 1
 				duration_left = "%02d:%02d" % divmod(duration - now, 60)
+				self.show_ui(self.cache)
 				if now == 0 or 0 > now or not self.playing:
 					self.cache["playing"] = 'Finished playing '+name+'\n\n'
 					self.cache["time"] = "00:00"
@@ -107,14 +103,27 @@ class MainPlayer(other.Helper,ui.MainUi):
 					return self.clsprg()
 				if self.paused is False: self.cache["time"] = f"Time left -> {duration_left}/{duration_human}"
 				if self.rpc is not False: self.rpc_connection.update(large_image="mpl", details=""+name+" Length: "+duration_human,state=f"{duration_left}/{duration_human}")
-				self.show_ui(self.cache)
 				time.sleep(1)
 
+	def check_input_loop(self):
+		if not hasattr(self, 'input_loop'):
+			self.input_loop = threading.Thread(target=self._input_loop)
+			self.input_loop.daemon = True
+			self.input_loop.name = 'Input Thread'
+			self.input_loop.start()			
+		if not self.input_loop.is_alive():
+			self.input_loop = threading.Thread(target=self._input_loop)
+			self.input_loop.daemon = True
+			self.input_loop.name = 'Input Thread'
+			self.input_loop.start()
+			return False
 
 	def _input_loop(self):
 		""""forever loop that constantly check for input"""
 		while True:
-			if self.playing:
+			if not self.playing:
+				break
+			else:
 				c = self.uinp.getch()
 				if c=="r":
 					if self.cache["repeat"]=="False":
@@ -155,13 +164,15 @@ class MainPlayer(other.Helper,ui.MainUi):
 		if "help" in song:
 			self.print(" \
 When selecting a song:\n \
-	/repeat -> repeat the song you plan on playing ex: {song_id} /repeat\n \
-	/help -> shows this message\n \
-	/refresh \n \
+	/repeat             -> 	Repeat the song you plan on playing ex: {song_id} /repeat\n \
+	/help               ->  Shows this message\n \
+	/refresh            ->  Reloads the songs (for database changes)\n \
+	/pages              ->  Shows how many pages (and songs) there are total\n \
+	/page={page_number} ->  Changes the current page, numbers only (do /page=all to not have a 5 song per page limit)\n \
 When playing a song:\n \
-	r -> Turn repeat on/off\n \
-	q -> quit the current song\n \
-	p -> Pause the current song", flush=True)
+	r -> 				Turn repeat on/off\n \
+	q -> 				quit the current song\n \
+	p -> 				Pause the current songs", flush=True)
 			input("\nPress enter to continue")
 			return self.clsprg()
 		if "/repeat" in song:
@@ -171,12 +182,23 @@ When playing a song:\n \
 			elif self.cache["repeat"]=="True":
 				self.cache["repeat"] = "False"
 				self.cache['repeat_cache']["last_song"] = None
+		if '/pages' in song:
+			self.print(f'{self.pages()}', flush=True)
+			input("\nEnter to continue ")
+			self.clsprg()
+		if '/page=' in song:
+			pageu = song.split('/page=')[1]
+			self.print(f"Changing page to {pageu}", flush=True)
+			if 'all' in pageu:
+				self.songs = self.get_songs(page=None)
+			else:
+				self.songs = self.get_songs(page=int(pageu))
+			self.print("Refreshing...", flush=True)
+			self.clsprg()
 		if "/refresh" in song:
 			self.print("Refreshing", flush=True)
 			self.songs = self.get_songs()
-			time.sleep(1)
 			self.print("Refreshed songs")
-			
 			time.sleep(2)
 			self.clsprg()
 		get_song = self.get_song_from_id(song)
@@ -199,7 +221,7 @@ def start():
 	try:
 		MainPlayer().clsprg()
 	except KeyboardInterrupt:
-		sys.stdout.write("\n\nExiting... please wait")
+		sys.stdout.write("\n\nExiting... please wait\n")
 		import gc
 		gc.collect()
 		sys.exit(0)

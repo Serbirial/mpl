@@ -18,6 +18,7 @@ import asyncio
 
 import config
 from . import other, ui, uinp
+from .helpers import youtube
 import util
 
 # Id for the discord rpc.
@@ -50,7 +51,9 @@ class MainPlayer(other.Helper,ui.MainUi):
 		self.uinp = uinp.KBHit()
 		self.reset_terminal = self.uinp.set_normal_term()
 		self.player = self.vlc_instance.media_player_new()
+		self.youtube = youtube.Youtube()
 		self.paused = False
+		self.playing = False
 		self.cache = {
 			"main": "Null - You should not see this at all",
 			"playing": "Null - This is really bad",
@@ -63,7 +66,6 @@ class MainPlayer(other.Helper,ui.MainUi):
 				"last_song": None
 			},
 			"_typed": ""}
-		self.playing = False
 	def play(self, url):
 		self.print("\n")
 		song, name = url["path"], url["name"]
@@ -104,6 +106,7 @@ class MainPlayer(other.Helper,ui.MainUi):
 				if self.paused is False: self.cache["time"] = f"Time left -> {duration_left}/{duration_human}"
 				if self.rpc is not False: self.rpc_connection.update(large_image="mpl", details=""+name+" Length: "+duration_human,state=f"{duration_left}/{duration_human}")
 				time.sleep(1)
+			elif self.paused: pass
 
 	def check_input_loop(self):
 		if not hasattr(self, 'input_loop'):
@@ -164,15 +167,16 @@ class MainPlayer(other.Helper,ui.MainUi):
 		if "help" in song:
 			self.print(" \
 When selecting a song:\n \
-	/repeat             -> 	Repeat the song you plan on playing ex: {song_id} /repeat\n \
-	/help               ->  Shows this message\n \
-	/refresh            ->  Reloads the songs (for database changes)\n \
-	/pages              ->  Shows how many pages (and songs) there are total\n \
-	/page={page_number} ->  Changes the current page, numbers only (do /page=all to not have a 5 song per page limit)\n \
+	/repeat:\n    Repeat the song you plan on playing ex: {song_id} /repeat\n \
+	/help:\n    Shows this message\n \
+	/refresh:\n    Reloads the songs (for database changes)\n \
+	/pages:\n    Shows how many pages (and songs) there are total\n \
+	/page={page_number}:\n    Changes the current page, numbers only (do /page=all to not have a 5 song per page limit)\n \
+	/ytsearch={url_or_name}:\n    Searches youtube for the url and plays it \
 When playing a song:\n \
-	r -> 				Turn repeat on/off\n \
-	q -> 				quit the current song\n \
-	p -> 				Pause the current songs", flush=True)
+	r:\n    Turn repeat on/off\n \
+	q:\n    quit the current song\n \
+	p:\n    Pause the current songs", flush=True)
 			input("\nPress enter to continue")
 			return self.clsprg()
 		if "/repeat" in song:
@@ -182,11 +186,22 @@ When playing a song:\n \
 			elif self.cache["repeat"]=="True":
 				self.cache["repeat"] = "False"
 				self.cache['repeat_cache']["last_song"] = None
-		if '/pages' in song:
+		elif '/ytsearch=' in song:
+			song = song.split('/ytsearch=')[1]
+			self.print(f"\nDownloading {song} please wait...", flush=True)
+			youtube = self.youtube.search_and_download(song)
+			temp = {
+				'name': f'{youtube.title} By {youtube.uploader}',
+				'path': f'{youtube.path}'
+			}
+			self.print(f'\nPlaying {temp["name"]}', flush=True)
+			return self.play(temp)
+
+		elif '/pages' in song:
 			self.print(f'{self.pages()}', flush=True)
 			input("\nEnter to continue ")
 			self.clsprg()
-		if '/page=' in song:
+		elif '/page=' in song:
 			pageu = song.split('/page=')[1]
 			self.print(f"Changing page to {pageu}", flush=True)
 			if 'all' in pageu:
@@ -195,7 +210,7 @@ When playing a song:\n \
 				self.songs = self.get_songs(page=int(pageu))
 			self.print("Refreshing...", flush=True)
 			self.clsprg()
-		if "/refresh" in song:
+		elif "/refresh" in song:
 			self.print("Refreshing", flush=True)
 			self.songs = self.get_songs()
 			self.print("Refreshed songs")

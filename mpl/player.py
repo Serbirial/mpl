@@ -4,10 +4,7 @@ import time, datetime
 if os.name == 'nt':
 	# Now supports windows, comes with a basket full of bugs.
 	sys.stdout.write("You might get cache errors...\n")
-#	self.print('Sorry windows is not supported, if you still want to try to get around the error comment out these lines\n')
-#	self.print('Exiting...\n')
-#	time.sleep(6)
-#	sys.exit(0)
+
 
 import vlc, librosa
 import sqlite3
@@ -126,27 +123,30 @@ class MainPlayer(other.Helper,ui.MainUi):
 		while True:
 			if not self.playing:
 				break
-			else:
-				c = self.uinp.getch()
-				if c=="r":
-					if self.cache["repeat"]=="False":
-						self.cache["repeat"] = "True"
-						pass
-					elif self.cache["repeat"]=="True":
-						self.cache["repeat"] = "False"
+			elif self.playing:
+				try:
+					c = self.uinp.getch()
+					if c=="r":
+						if self.cache["repeat"]=="False":
+							self.cache["repeat"] = "True"
+							pass
+						elif self.cache["repeat"]=="True":
+							self.cache["repeat"] = "False"
+							self.cache['repeat_cache']["last_song"] = None
+							pass
+					elif c=="q":
+						self.playing = False
 						self.cache['repeat_cache']["last_song"] = None
-						pass
-				elif c=="q":
-					self.playing = False
-					self.cache['repeat_cache']["last_song"] = None
-				elif c=="p":
-					self.show_ui(self.cache)
-					if self.player.is_playing():
-						self.paused = True
-						self.player.pause()
-					else:
-						self.paused = False
-						self.player.play()
+					elif c=="p":
+						self.show_ui(self.cache)
+						if self.player.is_playing():
+							self.paused = True
+							self.player.pause()
+						else:
+							self.paused = False
+							self.player.play()
+				except UnicodeDecodeError:
+					break
 				#if c is not None:
 				#	self.cache["_typed"] = f'{self.cache["_typed"]}{c}'
 				# will probably use this for linux.
@@ -156,6 +156,8 @@ class MainPlayer(other.Helper,ui.MainUi):
 		if os.name != 'nt':
 			self.print("\033]2;Media player : Idling\007")
 		if self.cache['repeat'] == "True" and self.cache['repeat_cache']["last_song"] is not None:
+			if self.cache['repeat_cache']["yt"] is True:
+				return self.play(self.cache['repeat_cache']["last_song"])
 			return self.play(self.get_song_from_id(self.cache['repeat_cache']["last_song"]))
 		if self.rpc is not False: self.rpc_connection.update(large_image="mpl", details="Idle",state=f"Idle")
 		self.print(self.songs)
@@ -194,6 +196,8 @@ When playing a song:\n \
 				'name': f'{youtube.title} By {youtube.uploader}',
 				'path': f'{youtube.path}'
 			}
+			self.cache['repeat_cache']["last_song"] = temp
+			self.cache['repeat_cache']["yt"] = True
 			self.print(f'\nPlaying {temp["name"]}', flush=True)
 			return self.play(temp)
 
@@ -225,6 +229,7 @@ When playing a song:\n \
 			self.clsprg()
 		elif get_song is not None:
 			self.cache['repeat_cache']["last_song"] = str(song)
+			self.cache['repeat_cache']["yt"] = False
 			return self.play(get_song)
 
 	def exit(self): 

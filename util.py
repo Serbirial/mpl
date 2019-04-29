@@ -61,8 +61,7 @@ def manually_insert_song():
 				name = input("song name for "+file+" > ")
 				author = input("author for "+file+" > ")
 				length = get_duration("./songs/"+file)
-				cur.execute("SELECT * FROM songs ORDER BY CAST(id as INTEGER) DESC")
-				returned = cur.fetchone()
+				returned = cur.execute("SELECT * FROM songs ORDER BY CAST(id as INTEGER) DESC").fetchone()
 				try:
 					id_ = int(returned[3]) + 1
 				except TypeError:

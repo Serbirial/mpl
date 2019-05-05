@@ -4,6 +4,9 @@ discord_rpc = True
 # The image that will be used in the rpc.
 rpc_large_image = 'mpl'
 
+# un-comment next line for all pages to show on startup 
+# prefpage = None
+
 # Themes
 # When enabled it will try to print in the selected theme (or make your own based from theme_example.py)
 # http://pueblo.sourceforge.net/doc/manual/ansi_color_codes.html

@@ -8,9 +8,7 @@ if os.name == 'nt':
 
 import vlc, librosa
 import sqlite3
-import psutil
-
-import threading
+import psutil, threading
 import asyncio
 
 import config
@@ -21,11 +19,22 @@ import util
 # Id for the discord rpc.
 client_id = '495106015273025546'
 
+
+# TODO:
+#	Improve on memory usage, kill the vlc instance and remake it every few songs?
+#	Volume handling
+#	Get someone to look over my horrible code
+#	Better and faster way of printing the ui
+#	Move from vlc if there is a better way of playing music (MUST BE FASTER AND EASIER TO DEAL WITH)
+
 class MainPlayer(other.Helper,ui.MainUi):
 	vlc_instance = vlc.Instance('-q') # Tries to stop the cache errors
 	def __init__(self):
 		super().__init__()
-		self.songs = self.get_songs()
+		if hasattr(config, "prefpage"):
+			self.songs = self.get_songs(config.prefpage)
+		else:
+			self.songs = self.get_songs()
 		self.rpc = False
 		if config.discord_rpc:
 			try:
@@ -60,9 +69,10 @@ class MainPlayer(other.Helper,ui.MainUi):
 			"repeat": "False",
 			"keys": "",
 			"repeat_cache": {
+				"yt": False,
 				"last_song": None
 			},
-			"_typed": ""}
+			"lastchar": ""}
 	def play(self, url):
 		self.print("\n")
 		song, name = url["path"], url["name"]
@@ -103,7 +113,7 @@ class MainPlayer(other.Helper,ui.MainUi):
 				if self.paused is False: self.cache["time"] = f"Time left -> {duration_left}/{duration_human}"
 				if self.rpc is not False: self.rpc_connection.update(large_image="mpl", details=""+name+" Length: "+duration_human,state=f"{duration_left}/{duration_human}")
 				time.sleep(1)
-			elif self.paused: pass
+			elif self.paused: pass # not the best way to handle pauses but it works
 
 	def check_input_loop(self):
 		if not hasattr(self, 'input_loop'):
@@ -122,18 +132,17 @@ class MainPlayer(other.Helper,ui.MainUi):
 		""""forever loop that constantly check for input"""
 		while True:
 			if not self.playing:
-				break
+				break # if the music has stopped break
 			elif self.playing:
 				try:
 					c = self.uinp.getch()
+					self.cache["lastchar"] = c
 					if c=="r":
 						if self.cache["repeat"]=="False":
 							self.cache["repeat"] = "True"
-							pass
 						elif self.cache["repeat"]=="True":
 							self.cache["repeat"] = "False"
 							self.cache['repeat_cache']["last_song"] = None
-							pass
 					elif c=="q":
 						self.playing = False
 						self.cache['repeat_cache']["last_song"] = None
@@ -146,20 +155,20 @@ class MainPlayer(other.Helper,ui.MainUi):
 							self.paused = False
 							self.player.play()
 				except UnicodeDecodeError:
-					break
-				#if c is not None:
-				#	self.cache["_typed"] = f'{self.cache["_typed"]}{c}'
-				# will probably use this for linux.
+					if self.playing:
+						pass
+					elif not self.playing:
+						break # break the loop, we are not playing, the thread will be remade next time music plays
 	def clsprg(self):
 		"""Clear screen, print, Go"""
 		os.system('cls' if os.name == 'nt' else 'clear')
 		if os.name != 'nt':
 			self.print("\033]2;Media player : Idling\007")
 		if self.cache['repeat'] == "True" and self.cache['repeat_cache']["last_song"] is not None:
-			if self.cache['repeat_cache']["yt"] is True:
-				return self.play(self.cache['repeat_cache']["last_song"])
-			return self.play(self.get_song_from_id(self.cache['repeat_cache']["last_song"]))
-		if self.rpc is not False: self.rpc_connection.update(large_image="mpl", details="Idle",state=f"Idle")
+			if self.cache['repeat_cache']['yt'] is True:
+				return self.play(self.cache['repeat_cache']['last_song'])
+			return self.play(self.get_song_from_id(self.cache['repeat_cache']['last_song']))
+		if self.rpc: self.rpc_connection.update(large_image="mpl", details="Idle",state=f"Idle")
 		self.print(self.songs)
 		self.print("\nPlease input a number next to the song you want to play")
 		
@@ -233,7 +242,7 @@ When playing a song:\n \
 			return self.play(get_song)
 
 	def exit(self): 
-		sys.stdout.write("\n\nExiting... please wait")
+		sys.stdout.write("\n\nExiting... please wait\n")
 		sys.exit(0)
 		
 
@@ -242,6 +251,4 @@ def start():
 		MainPlayer().clsprg()
 	except KeyboardInterrupt:
 		sys.stdout.write("\n\nExiting... please wait\n")
-		import gc
-		gc.collect()
-		sys.exit(0)
+		exit(0)

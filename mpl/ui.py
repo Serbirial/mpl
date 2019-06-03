@@ -32,7 +32,7 @@ class MainUi:
 
 {color_theme.colors["time"]}{cache["time"]}{color_theme.colors["time2"]}
 
-	-> {cache["lastchar"]}"""
+	-> """
 		else:
 			ui = f"""
 {cache["other"]}
@@ -44,7 +44,7 @@ Repeating -> {cache["repeat"]}
 
 {cache["time"]}
 
-	-> {cache["lastchar"]}"""
+	-> """
 		self.print(ui, flush=True)
 
 	def reload_theme(self):

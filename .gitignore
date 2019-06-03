@@ -1,3 +1,5 @@
 __pycache__/*
 mpl/__pycache__/*
 media-player-light/*
+*.pyc
+*.save

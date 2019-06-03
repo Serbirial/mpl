@@ -51,7 +51,7 @@ class MainPlayer(other.Helper,ui.MainUi):
 					self.rpc = False
 					time.sleep(2)
 			except ImportError:
-				self.print("pypresence is not installed (pip install pypresence)")
+				self.print("pypresence is not installed (pip install pypresence)\n\n")
 				self.rpc = False
 				time.sleep(2)
 		self.uinp = uinp.KBHit()
@@ -233,6 +233,7 @@ When playing a song:\n \
 		if get_song is None:
 			self.print(" Not a valid song id", flush=True)
 			self.print(" Or that song was not found", flush=True)
+
 			
 			time.sleep(2)
 			self.clsprg()

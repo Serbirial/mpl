@@ -8,7 +8,7 @@ class Helper:
     def check_db(self):
         con = sqlite3.connect('database.db')
         cur = con.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS songs (song, author, length, id, path, page)")
+        cur.execute("CREATE TABLE IF NOT EXISTS songs (song TEXT, author TEXT, length TEXT, id INT, path TEXT, page INT)")
         con.commit()
 
     def pages(self, num=False):

@@ -3,7 +3,13 @@ import sqlite3
 
 class Helper:
     def __init__(self):
-        pass
+        self.check_db()
+
+    def check_db(self)
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+        cur.execute("CREATE TABLE IF NOT EXISTS songs (song, author, length, id, path, page)")
+        con.commit()
 
     def pages(self, num=False):
         con = sqlite3.connect('database.db')

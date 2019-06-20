@@ -51,45 +51,47 @@ def manually_insert_song():
     cur = con.cursor()
     perpage = 5
     for file in listdir('songs'):
-        try:
-            cur.execute('SELECT path FROM songs WHERE path=?',("./songs/"+file,))
-            rows = cur.fetchall()
-            if len(rows) != 0:
-                print("This song is already in the database ", file)
-                pass
-            elif len(rows) == 0:
-                name = input("song name for "+file+" > ")
-                author = input("author for "+file+" > ")
-                try:
-                    length = get_duration("./songs/"+file)
-                except FileNotFoundError:
-                    print("Got a `FileNotFound`, maybe it was avconv?")
-                    print("Stopping")
-                    exit(0)
-                returned = cur.execute("SELECT * FROM songs ORDER BY CAST(id as INTEGER) DESC").fetchone()
-                try:
-                    id_ = int(returned[3]) + 1
-                except TypeError:
-                    id_ = 1
-                print("Setting page...")
-                startpage = cur.execute('SELECT page FROM SONGS ORDER BY CAST(page as INTEGER) DESC').fetchone()
-                if not startpage is None:
-                    currentpage = int(startpage[0])
-                else:
-                    currentpage = 0
-                songsinpage = len(cur.execute('SELECT page FROM SONGS WHERE page=? ORDER BY CAST(page as INTEGER)',(currentpage,)).fetchall())
-                if songsinpage >= perpage:	
-                    print('PAGES LARGER THAN 5 (',str(songsinpage), ')')
-                    currentpage += 1
-                    print('NEW PAGE (', currentpage,')') 
-                print(f"{name} - {author} - {length} Id {id_}")
-                print(f"Name -> {name} Author -> {author} Length -> {length} Id -> {id_}")
-                print("Is this correct?")
-                input("Press enter to pass (CTRL+C to stop)")
-                cur.execute('INSERT INTO songs VALUES (?,?,?,?,?,?)', (str(name), str(author), str(length), str(id_), str("./songs/"+file), str(currentpage)))
-                con.commit()
-                pass
-        except EOFError: print("Not a valid audio file"); pass
+        if file.startswith('.'): pass
+        else:
+            try:
+                cur.execute('SELECT path FROM songs WHERE path=?',("./songs/"+file,))
+                rows = cur.fetchall()
+                if len(rows) != 0:
+                    print("This song is already in the database ", file)
+                    pass
+                elif len(rows) == 0:
+                    name = input("song name for "+file+" > ")
+                    author = input("author for "+file+" > ")
+                    try:
+                        length = get_duration("./songs/"+file)
+                    except FileNotFoundError:
+                        print("Got a `FileNotFound`, maybe it was avconv?")
+                        print("Stopping")
+                        exit(0)
+                    returned = cur.execute("SELECT * FROM songs ORDER BY CAST(id as INTEGER) DESC").fetchone()
+                    try:
+                        id_ = int(returned[3]) + 1
+                    except TypeError:
+                        id_ = 1
+                    print("Setting page...")
+                    startpage = cur.execute('SELECT page FROM SONGS ORDER BY CAST(page as INTEGER) DESC').fetchone()
+                    if not startpage is None:
+                        currentpage = int(startpage[0])
+                    else:
+                        currentpage = 0
+                    songsinpage = len(cur.execute('SELECT page FROM SONGS WHERE page=? ORDER BY CAST(page as INTEGER)',(currentpage,)).fetchall())
+                    if songsinpage >= perpage:	
+                        print('PAGES LARGER THAN 5 (',str(songsinpage), ')')
+                        currentpage += 1
+                        print('NEW PAGE (', currentpage,')') 
+                    print(f"{name} - {author} - {length} Id {id_}")
+                    print(f"Name -> {name} Author -> {author} Length -> {length} Id -> {id_}")
+                    print("Is this correct?")
+                    input("Press enter to pass (CTRL+C to stop)")
+                    cur.execute('INSERT INTO songs VALUES (?,?,?,?,?,?)', (str(name), str(author), str(length), str(id_), str("./songs/"+file), str(currentpage)))
+                    con.commit()
+                    pass
+            except EOFError: print("Not a valid audio file"); pass
     con.close()
 
 def get_duration(url):

@@ -88,7 +88,7 @@ class MainPlayer(other.Helper,ui.MainUi):
         duration = player.get_length() / 1000
         now = duration
         duration_human = "%02d:%02d" % divmod(duration, 60)
-        self.cache["main"] = ''.join([x for x in self.songs])
+        self.cache["main"] = ''.join([x for x in self.songs]) if hasattr(config, 'show_songs_while_playing') and config.show_songs_while_playing else ''
         self.cache["playing"] = "Current song is : "+name+" ("+duration_human+")"
         self.cache["other"] = " 	Song Loaded!"
         if self.cache["repeat"]=="True":
@@ -226,7 +226,7 @@ When playing a song:\n \
         elif "/refresh" in song:
             self.print("Refreshing\n", flush=True)
             self.songs = self.get_songs()
-            self.print("Refreshed songs")
+            self.print("Refreshed songs\n")
             time.sleep(2)
             self.clsprg()
         get_song = self.get_song_from_id(song)

@@ -4,6 +4,9 @@ discord_rpc = True
 # The image that will be used in the rpc.
 rpc_large_image = 'mpl'
 
+# Whether or not to show songs while playing
+show_songs_while_plaing = False
+
 # un-comment next line for all pages to show on startup 
 # prefpage = None
 

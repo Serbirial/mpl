@@ -17,7 +17,7 @@ class Helper:
         return string
 
     def get_songs(self, page=0):
-        returned = ''
+        returned = []
         con = sqlite3.connect('database.db')
         cur = con.cursor()  # handles requests made to the database
         # check for songs
@@ -25,20 +25,20 @@ class Helper:
             rows = cur.execute(
                 'SELECT song,author,length,id FROM songs').fetchall()
             if len(rows) == 0:
-                returned += "No songs found"
+                returned.append("No songs found")
             for song, author, length, id in cur.execute(
                     'SELECT song,author,length,id FROM songs'):
-                returned += f'{id} -> {song} - {author}: {length}\n'
+                returned.append(f'{id} -> {song} - {author}: {length}\n')
             con.close()
             return returned            
         elif type(page) == int:
             rows = cur.execute(
                 'SELECT song,author,length,id FROM songs WHERE page=?', (page,)).fetchall()
             if len(rows) == 0:
-                returned += "No songs found"
+                returned.append("No songs found")
             for song, author, length, id in cur.execute(
                     'SELECT song,author,length,id FROM songs WHERE page=?', (page,)):
-                returned += f'{id} -> {song} - {author}: {length}\n'
+                returned.append(f'{id} -> {song} - {author}: {length}\n')
             con.close()
             return returned
 

@@ -1,14 +1,10 @@
 ## MPL
 [YOU NEED TO HAVE VLC INSTALLED](https://www.videolan.org/index.html)
+
+# Using
 * add songs to [songs/](songs/)
-* python3 util.py
-* press 1 to add the songs
-* press 2 and mass download urls
-* python3 go.py
-
-~~**THIS DOES NOT WORK ON WINDOWS**~~
-
-It does work on windows, it just takes a little work.
+* go.py starts the player
+* util.py lets you download audio from urls and add them to the database
 
 ## In use
 ![Selecting](pictures/selecting.png)

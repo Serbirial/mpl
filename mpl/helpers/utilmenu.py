@@ -6,14 +6,16 @@ import time
 import vlc
 import re
 import librosa
-from pathlib import Path
+import pathlib
 
 
 def manually_insert_song():
-    con = sqlite3.connect('database.db')
+    home = pathlib.Path.home()
+    con = sqlite3.connect('f'{home.joinpath(".config/mpl")}/database.db'')
     cur = con.cursor()
     perpage = 5
-    for file in listdir('songs'):
+    print(f'I will search for music in {home}/Music')
+    for file in listdir(f'{home}/Music'):
         if file.startswith('.'): pass
         else:
             try:
@@ -64,16 +66,14 @@ def get_duration(url):
 
 def mass_download(urls):
     """wow this is broken - pls nerf"""
+    home = pathlib.Path.home()
+    music = home.joinpath('Music')
     for url in urls:
         print("Downloading ", url)
-        if os.name == 'nt':
-            sys.stdout.write('ATTENTION :: You might need to move the files from \'#\\songs\ to \songs\\')
-            system(f"youtube-dl -o /songs/%(title)s.%(ext)s -x {url}")
-        else:
-            system(f"youtube-dl -o './songs/%(title)s.%(ext)s' -x '{url}'")
+        system(f"youtube-dl -o '{music}/%(title)s.%(ext)s' -x '{url}'")
 
 def page_db():
-    con = sqlite3.connect('database.db')
+    con = sqlite3.connect('f'{pathlib.Path.home().joinpath(".config/mpl")}/database.db'')
     cur = con.cursor()
     PAGE = 0
     CURRENT = 0

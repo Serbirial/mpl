@@ -116,7 +116,7 @@ class MainPlayer(other.Helper,ui.MainUi):
                     if self.rpc is not False: self.rpc_connection.update(large_image="mpl", details="Finished playing "+name,state="00:00")
                     time.sleep(0.4)
                     player.stop()
-                    if self.cache["repeat"]=="True":
+                    if self.cache["repeat"]=="True" and self.cache['lastchar']!='q':
                         return self.play(self.cache['repeat_cache']['last_song']) 
                     else:
                         return
@@ -275,20 +275,24 @@ def main():
     args = parser.parse_args()
     if args.single:
         try:
-            mp.play({'path': args.single ,'name': f'{args.single} by ?'})
+            name = args.single.split("/")
+            name = name[len(name)-1]
+            data = {'path': args.single ,'name': f'{name} by ?'}
+            mp.cache['repeat_cache']["last_song"] = data
+            mp.play(data)
         except KeyboardInterrupt:
             mp.paused = True
-            mp.playing = False
             mp.player.pause() 
             sys.stdout.write("\n\nExiting... please wait\n")
             sys.exit(0)
     elif args.util:
         from .helpers.utilmenu import repl
-        repl()  
-    try:
-        while True:
-            mp.clsprg()
-    except KeyboardInterrupt:
-        sys.stdout.write("\n\nExiting... please wait\n")
-        sys.exit(0)
+        repl() 
+    else:
+        try:
+            while True:
+                mp.clsprg()
+        except KeyboardInterrupt:
+            sys.stdout.write("\n\nExiting... please wait\n")
+            sys.exit(0)
 

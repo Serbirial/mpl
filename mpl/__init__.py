@@ -1,4 +1,3 @@
-from .player import main as m
+from .player import main
 
-def main():
-	m()
+main = main

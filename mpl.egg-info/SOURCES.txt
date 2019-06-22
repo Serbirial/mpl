@@ -12,4 +12,5 @@ mpl.egg-info/dependency_links.txt
 mpl.egg-info/entry_points.txt
 mpl.egg-info/requires.txt
 mpl.egg-info/top_level.txt
+mpl/helpers/utilmenu.py
 mpl/helpers/youtube.py

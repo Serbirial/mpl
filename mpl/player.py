@@ -1,5 +1,10 @@
 import os, sys
 import time, datetime
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-s", "--single", help="play a single song", required=False)
+parser.add_argument("-u", "--util", help="activate the util menu", action='store_true', required=False)
 
 if os.name == 'nt':
     # Now supports windows, comes with a basket full of bugs.
@@ -11,10 +16,10 @@ import sqlite3
 import psutil, threading
 import asyncio
 
-import config
+
 from . import other, ui, uinp
 from .helpers import youtube
-import util
+
 
 # Id for the discord rpc.
 client_id = '495106015273025546'
@@ -31,23 +36,25 @@ class MainPlayer(other.Helper,ui.MainUi):
     vlc_instance = vlc.Instance('-q') # Tries to stop the cache errors
     def __init__(self):
         super().__init__()
-        if hasattr(config, "prefpage"):
-            self.songs = self.get_songs(config.prefpage)
+        self.check_config() # makes sure all the needed parts are there, if not then make them
+        self.init_ui()
+        if "prefpage" in self.config["main"]:
+            self.songs = self.get_songs(self.config["main"]["prefpage"])
         else:
             self.songs = self.get_songs()
         self.rpc = False
-        if config.discord_rpc:
+        if self.config["main"]["discord_rpc"]:
             try:
                 self.rpc = True
                 from pypresence import Presence as pr
                 try:
                     self.rpc_connection = pr(client_id,pipe=0)
                     self.rpc_connection.connect() 
-                    self.rpc_connection.update(large_image=config.rpc_large_image, details="Just loaded",state=f"Idle")
+                    self.rpc_connection.update(large_image=self.config["main"]["rpc_large_image"], details="Just loaded",state=f"Idle")
                 except FileNotFoundError:
                     self.print("Discord is not open or not installed (you must have the client not the web version)", flush=True)
                     self.print("If the discord client is open and it still says this, check if you have another rpc (That might be the cause)\nOr restart discord", flush=True)
-                    config.discord_rpc = False
+                    self.config["main"]["discord_rpc"] = False
                     self.rpc = False
                     time.sleep(2)
             except ImportError:
@@ -88,7 +95,7 @@ class MainPlayer(other.Helper,ui.MainUi):
         duration = player.get_length() / 1000
         now = duration
         duration_human = "%02d:%02d" % divmod(duration, 60)
-        self.cache["main"] = ''.join([x for x in self.songs])
+        self.cache["main"] = ''.join([x for x in self.songs]) if self.config["main"]["show_songs_while_playing"] else ''
         self.cache["playing"] = "Current song is : "+name+" ("+duration_human+")"
         self.cache["other"] = " 	Song Loaded!"
         if self.cache["repeat"]=="True":
@@ -109,7 +116,10 @@ class MainPlayer(other.Helper,ui.MainUi):
                     if self.rpc is not False: self.rpc_connection.update(large_image="mpl", details="Finished playing "+name,state="00:00")
                     time.sleep(0.4)
                     player.stop()
-                    return self.clsprg()
+                    if self.cache["repeat"]=="True":
+                        return self.play(self.cache['repeat_cache']['last_song']) 
+                    else:
+                        return
                 if self.paused is False: self.cache["time"] = f"Time left -> {duration_left}/{duration_human}"
                 if self.rpc is not False: self.rpc_connection.update(large_image="mpl", details=""+name+" Length: "+duration_human,state=f"{duration_left}/{duration_human}")
                 time.sleep(1)
@@ -165,9 +175,7 @@ class MainPlayer(other.Helper,ui.MainUi):
         if os.name != 'nt':
             self.print("\033]2;Media player : Idling\007")
         if self.cache['repeat'] == "True" and self.cache['repeat_cache']["last_song"] is not None:
-            if self.cache['repeat_cache']['yt'] is True:
-                return self.play(self.cache['repeat_cache']['last_song'])
-            return self.play(self.get_song_from_id(self.cache['repeat_cache']['last_song']))
+            return self.play(self.cache['repeat_cache']['last_song'])
         if self.rpc: self.rpc_connection.update(large_image="mpl", details="Idle",state=f"Idle")
         self.print(''.join([x for x in self.songs]))
         self.print("\nPlease input a number next to the song you want to play")
@@ -176,14 +184,15 @@ class MainPlayer(other.Helper,ui.MainUi):
         if "exit" in song: # TODO: use a tuple ?
             self.exit()
         if "help" in song:
-            self.print(" \
+            self.print(f" \
+(Config file is in {pathlib.Path.home()})/.config/mpl/config.json \
 When selecting a song:\n \
-    /repeat:\n    Repeat the song you plan on playing ex: {song_id} /repeat\n \
+    /repeat:\n    Repeat the song you plan on playing ex: 2 /repeat\n \
     /help:\n    Shows this message\n \
     /refresh:\n    Reloads the songs (for database changes)\n \
     /pages:\n    Shows how many pages (and songs) there are total\n \
-    /page={page_number}:\n    Changes the current page, numbers only (do /page=all to not have a 5 song per page limit)\n \
-    /ytsearch={url_or_name}:\n    Searches youtube for the url and plays it \
+    /page=page_number:\n    Changes the current page, numbers only (do /page=all to not have a 5 song per page limit, or /page=1,2 to mix them)\n \
+    /ytsearch=url_or_name:\n    Searches youtube for the url and plays it \
 When playing a song:\n \
     r:\n    Turn repeat on/off\n \
     q:\n    quit the current song\n \
@@ -216,9 +225,17 @@ When playing a song:\n \
             self.clsprg()
         elif '/page=' in song:
             pageu = song.split('/page=')[1]
+            if ',' in pageu:
+                songs = []
+                for x in pageu.split(','):
+                    songs += self.get_songs(page=int(x))
+                self.songs = songs
+                self.clsprg()
             self.print(f"Changing page to {pageu}", flush=True)
             if 'all' in pageu:
                 self.songs = self.get_songs(page=None)
+            elif 'dir' in pageu:
+                self.songs = self.get_songs(page="dir")
             else:
                 self.songs = self.get_songs(page=int(pageu))
             self.print("Refreshing...\n", flush=True)
@@ -226,7 +243,7 @@ When playing a song:\n \
         elif "/refresh" in song:
             self.print("Refreshing\n", flush=True)
             self.songs = self.get_songs()
-            self.print("Refreshed songs")
+            self.print("Refreshed songs\n")
             time.sleep(2)
             self.clsprg()
         get_song = self.get_song_from_id(song)
@@ -239,8 +256,7 @@ When playing a song:\n \
             time.sleep(2)
             self.clsprg()
         elif get_song is not None:
-            self.cache['repeat_cache']["last_song"] = str(song)
-            self.cache['repeat_cache']["yt"] = False
+            self.cache['repeat_cache']["last_song"] = get_song
             return self.play(get_song)
 
 
@@ -250,9 +266,29 @@ When playing a song:\n \
         sys.exit(0)
         
 
-def start():
+def main():
+
+    if os.name != "nt": print("\033]2;Media player : idle\007")
+
+    mp = MainPlayer()
+
+    args = parser.parse_args()
+    if args.single:
+        try:
+            mp.play({'path': args.single ,'name': f'{args.single} by ?'})
+        except KeyboardInterrupt:
+            mp.paused = True
+            mp.playing = False
+            mp.player.pause() 
+            sys.stdout.write("\n\nExiting... please wait\n")
+            sys.exit(0)
+    elif args.util:
+        from .helpers.utilmenu import repl
+        repl()  
     try:
-        MainPlayer().clsprg()
+        while True:
+            mp.clsprg()
     except KeyboardInterrupt:
         sys.stdout.write("\n\nExiting... please wait\n")
-        exit(0)
+        sys.exit(0)
+

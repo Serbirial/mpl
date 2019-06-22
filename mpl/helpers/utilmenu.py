@@ -11,7 +11,8 @@ import pathlib
 
 def manually_insert_song():
     home = pathlib.Path.home()
-    con = sqlite3.connect('f'{home.joinpath(".config/mpl")}/database.db'')
+    music = home.joinpath("Music")
+    con = sqlite3.connect(f'{home.joinpath(".config/mpl")}/database.db')
     cur = con.cursor()
     perpage = 5
     print(f'I will search for music in {home}/Music')
@@ -19,7 +20,7 @@ def manually_insert_song():
         if file.startswith('.'): pass
         else:
             try:
-                cur.execute('SELECT path FROM songs WHERE path=?',("./songs/"+file,))
+                cur.execute('SELECT path FROM songs WHERE path=?',(f'{music}/{file}',))
                 rows = cur.fetchall()
                 if len(rows) != 0:
                     print("This song is already in the database ", file)
@@ -28,7 +29,7 @@ def manually_insert_song():
                     name = input("song name for "+file+" > ")
                     author = input("author for "+file+" > ")
                     try:
-                        length = get_duration("./songs/"+file)
+                        length = get_duration(f"{music}/{file}")
                     except FileNotFoundError:
                         print("Got a `FileNotFound`, maybe it was avconv?")
                         print("Stopping")
@@ -53,7 +54,7 @@ def manually_insert_song():
                     print(f"Name -> {name} Author -> {author} Length -> {length} Id -> {id_}")
                     print("Is this correct?")
                     input("Press enter to pass (CTRL+C to stop)")
-                    cur.execute('INSERT INTO songs VALUES (?,?,?,?,?,?)', (str(name), str(author), str(length), str(id_), str("./songs/"+file), str(currentpage)))
+                    cur.execute('INSERT INTO songs VALUES (?,?,?,?,?,?)', (str(name), str(author), str(length), str(id_), f'{music}/{file}', str(currentpage)))
                     con.commit()
                     pass
             except EOFError: print("Not a valid audio file"); pass
@@ -73,7 +74,7 @@ def mass_download(urls):
         system(f"youtube-dl -o '{music}/%(title)s.%(ext)s' -x '{url}'")
 
 def page_db():
-    con = sqlite3.connect('f'{pathlib.Path.home().joinpath(".config/mpl")}/database.db'')
+    con = sqlite3.connect(f'{pathlib.Path.home().joinpath(".config/mpl")}/database.db')
     cur = con.cursor()
     PAGE = 0
     CURRENT = 0

@@ -18,7 +18,7 @@ import asyncio
 
 
 from . import other, ui, uinp
-from .helpers import youtube
+from .helpers import youtube_helper as youtube
 
 
 # Id for the discord rpc.
@@ -43,7 +43,7 @@ class MainPlayer(other.Helper,ui.MainUi):
         else:
             self.songs = self.get_songs()
         self.rpc = False
-        if self.config["main"]["discord_rpc"]:
+        if self.config["main"]["discord_rpc"]==True:
             try:
                 self.rpc = True
                 from pypresence import Presence as pr
@@ -116,7 +116,7 @@ class MainPlayer(other.Helper,ui.MainUi):
                     if self.rpc is not False: self.rpc_connection.update(large_image="mpl", details="Finished playing "+name,state="00:00")
                     time.sleep(0.4)
                     player.stop()
-                    if self.cache["repeat"]=="True" and self.cache['lastchar']!='q':
+                    if self.cache["repeat"]=="True" and self.cache['lastchar']!='q' and self.cache['repeat_cache']['last_song']!=None:
                         return self.play(self.cache['repeat_cache']['last_song']) 
                     else:
                         return
@@ -282,7 +282,7 @@ def main():
             mp.play(data)
         except KeyboardInterrupt:
             mp.paused = True
-            mp.player.pause() 
+            mp.player.pause()
             sys.stdout.write("\n\nExiting... please wait\n")
             sys.exit(0)
     elif args.util:

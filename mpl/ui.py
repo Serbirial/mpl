@@ -54,8 +54,7 @@ Repeating -> {cache["repeat"]}
         self.print(ui, flush=True)
 
     def reload_theme(self):
-        import config
-        color_theme = config.theme_import
+        color_theme = __import__("config").theme_import
         # does this even work.
 
         

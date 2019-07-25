@@ -49,6 +49,7 @@ class Helper:
         con = sqlite3.connect(f'{pathlib.Path.home().joinpath(".config/mpl")}/database.db')
         cur = con.cursor()  # handles requests made to the database
         # check for songs
+        from audioread.exceptions import NoBackendError
         if page=="dir":
             if "dir" in self.config["main"]:
                 for dir in self.config["main"]["dir"]:
@@ -58,13 +59,16 @@ class Helper:
                         print(f'Is {file} valid? checking')
                         try:
                             librosa.core.get_duration(filename=file)
-                            returned.append(file)
+                            returned.append(str(file)+"\n")
                         except EOFError:
+                            pass
+                        except NoBackendError:
                             pass
                 if len(returned)==0:
                     return ["No songs found in the given dirs"]
             else:
                 return ["Dirs not found, edit your config"]
+            return returned
         if page is None:
             rows = cur.execute(
                 'SELECT song,author,length,id FROM songs').fetchall()

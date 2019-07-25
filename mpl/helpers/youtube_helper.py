@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, pathlib
 
 try:
 	import youtube_dl
@@ -9,7 +9,7 @@ except ImportError:
 
 youtube_dl_o = {
 	'format': 'bestaudio/best',
-	'outtmpl': 'songs/%(title)s.%(ext)s',
+	'outtmpl': f'{pathlib.Path.home()}/Music/%(title)s.%(ext)s', # Still need to test this, as i made it when i was offline
 	'restrictfilenames': True,
 	'noplaylist': True,
 	'nocheckcertificate': True,

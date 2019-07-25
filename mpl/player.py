@@ -1,20 +1,15 @@
 import os, sys
-import time, datetime
+import time 
 import argparse
+import pathlib
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-s", "--single", help="play a single song", required=False)
-parser.add_argument("-u", "--util", help="activate the util menu", action='store_true', required=False)
-
-if os.name == 'nt':
-    # Now supports windows, comes with a basket full of bugs.
-    sys.stdout.write("You might get cache errors...\n")
+parser.add_argument("-s", "--single", help="Play a single song", required=False)
+parser.add_argument("-u", "--util", help="Activate the util menu", action='store_true', required=False)
 
 
 import vlc, librosa
-import sqlite3
-import psutil, threading
-import asyncio
+import threading
 
 
 from . import other, ui, uinp
@@ -126,12 +121,7 @@ class MainPlayer(other.Helper,ui.MainUi):
             elif self.paused: time.sleep(0.5) # not the best way to handle pauses but it works
 
     def check_input_loop(self):
-        if not hasattr(self, 'input_loop'):
-            self.input_loop = threading.Thread(target=self._input_loop)
-            self.input_loop.daemon = True
-            self.input_loop.name = 'Input Thread'
-            self.input_loop.start()			
-        if not self.input_loop.is_alive():
+        if not hasattr(self, "input_loop") or not self.input_loop.is_alive():
             self.input_loop = threading.Thread(target=self._input_loop)
             self.input_loop.daemon = True
             self.input_loop.name = 'Input Thread'
@@ -184,19 +174,19 @@ class MainPlayer(other.Helper,ui.MainUi):
         if "exit" in song: # TODO: use a tuple ?
             self.exit()
         if "help" in song:
-            self.print(f" \
-(Config file is in {pathlib.Path.home()})/.config/mpl/config.json \
-When selecting a song:\n \
-    /repeat:\n    Repeat the song you plan on playing ex: 2 /repeat\n \
-    /help:\n    Shows this message\n \
-    /refresh:\n    Reloads the songs (for database changes)\n \
-    /pages:\n    Shows how many pages (and songs) there are total\n \
-    /page=page_number:\n    Changes the current page, numbers only (do /page=all to not have a 5 song per page limit, or /page=1,2 to mix them)\n \
-    /ytsearch=url_or_name:\n    Searches youtube for the url and plays it \
-When playing a song:\n \
-    r:\n    Turn repeat on/off\n \
-    q:\n    quit the current song\n \
-    p:\n    Pause the current songs", flush=True)
+            self.print(f"""
+(Config file is in {pathlib.Path.home()}/.config/mpl/config.json)\n
+When selecting a song:\n
+    /repeat: Repeat the song you plan on playing ex: 2 /repeat\n
+    /help: Shows this message\n
+    /refresh: Reloads the songs (for database changes)\n
+    /pages: Shows how many pages (and songs) there are total\n
+    /page=page_number: Changes the current page, numbers only (do /page=all to not have a 5 song per page limit, or /page=1,2 to mix them)\n
+    /ytsearch=url_or_name: Searches youtube for the url and plays it\n
+When playing a song:\n
+    r: Turn repeat on/off\n
+    q: quit the current song\n
+    p: Pause the current songs\n""", flush=True)
             input("\nPress enter to continue")
             return self.clsprg()
         if "/repeat" in song:
@@ -209,10 +199,10 @@ When playing a song:\n \
         elif '/ytsearch=' in song:
             song = song.split('/ytsearch=')[1]
             self.print(f"\nDownloading {song} please wait...", flush=True)
-            youtube = self.youtube.search_and_download(song)
+            song = self.youtube.search_and_download(song)
             temp = {
-                'name': f'{youtube.title} By {youtube.uploader}',
-                'path': f'{youtube.path}'
+                'name': f'{song.title} By {song.uploader}',
+                'path': f'{song.path}'
             }
             self.cache['repeat_cache']["last_song"] = temp
             self.cache['repeat_cache']["yt"] = True
@@ -267,8 +257,11 @@ When playing a song:\n \
         
 
 def main():
+    if os.name == 'nt':
+        sys.stdout.write("This will not work... You can try though\n")
+        input("Press enter to continue")
 
-    if os.name != "nt": print("\033]2;Media player : idle\007")
+    else: print("\033]2;Media player : idle\007")
 
     mp = MainPlayer()
 

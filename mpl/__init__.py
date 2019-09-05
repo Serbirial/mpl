@@ -1,3 +1,3 @@
 from .player import main
 
-main = main
+main = main # it just works - todd howard 

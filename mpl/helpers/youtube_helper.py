@@ -61,8 +61,8 @@ class Youtube:
 if __name__ == "__main__":
 	ytin = Youtube()
 	objs = {
-	"1": ytin.get_info,
-	"2": ytin.search_and_download 
+    	"1": ytin.get_info,
+    	"2": ytin.search_and_download 
 	}
 	inp = input(">>>")
 	if inp in objs:

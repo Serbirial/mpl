@@ -94,7 +94,7 @@ def repl():
         if "1" in a:
             manually_insert_song()
         elif "2" in a:
-            print("Please paste the urls (seperated by a space) ->")
+            print("Please paste the urls (seperated by a space) -> ")
             urls = input()
             urlss = []
             split = urls.split(" ")

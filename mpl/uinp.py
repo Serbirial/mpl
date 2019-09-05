@@ -35,7 +35,9 @@ class KBHit:
     def __init__(self):
         '''Creates a KBHit object that you can call to do various keyboard things.
         '''
+        self.set_term()
 
+    def set_term(self):
         if os.name == 'nt':
             pass
 
@@ -52,7 +54,6 @@ class KBHit:
 
             # Support normal-terminal reset at exit
             atexit.register(self.set_normal_term)
-
 
     def set_normal_term(self):
         ''' Resets to normal terminal.  On Windows this is a no-op.
@@ -125,6 +126,5 @@ if __name__ == "__main__":
         if c is not None:
             if ord(c) == 27: # ESC
                 break
-            print(c)
-
+            print(f"You pressed '{c}' ({ord(c)})")
     kb.set_normal_term()

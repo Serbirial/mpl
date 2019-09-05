@@ -15,8 +15,8 @@ class MainUi:
             self.color_enable = True
 
     def print(self, *content, flush=False):
-        if flush:sys.stdout.flush()
         sys.stdout.write(str(*content))
+        if flush:sys.stdout.flush()
 
     def show_ui(self, cache=None):
         if cache is None:

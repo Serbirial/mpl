@@ -29,7 +29,7 @@ client_id = '495106015273025546'
 #	Move from vlc if there is a better way of playing music (MUST BE FASTER AND EASIER TO DEAL WITH)
 
 # BUG:
-#   With /playlist it wil *always* stop after the 2nd, no known way to fix, no known cause  (HIGH PRIO)
+#   With /playlist it will *always* stop after the 2nd, no known way to fix, no known cause  (HIGH PRIO)
 #   Sometimes you need to hit enter to get input read when a song is playing                (LOW PRIO / DONT CARE) 
 
 
@@ -128,7 +128,7 @@ class MainPlayer(other.Helper,ui.MainUi):
                         return self.play(self.cache['repeat_cache']['last_song']) 
                     else:
                         return
-                if self.rpc is not False: self.rpc_connection.update(large_image=self.config["main"]["rpc_large_image"], details=name,state=f"{duration_left}/{duration_human}")
+                if self.rpc is not False: self.rpc_connection.update(large_image=self.config["main"]["rpc_large_image"], details=name,state=f"{'%02d:%02d' % divmod(duration - now, 60)}/{duration_human}/{duration_human}")
                 self.show_ui(self.cache)
                 time.sleep(1)
             elif self.paused: time.sleep(0.5) # not the best way to handle pauses but it works
@@ -316,8 +316,10 @@ def main():
         try:
             name = args.single.split("/")
             name = name[len(name)-1]
-            data = {'path': args.single ,'name': f'{name.replace("_", " ")} by ?'}
+            data = {'path': args.single ,'name': f'{name.replace("_", " ")} by Local'}
             mp.cache['repeat_cache']["last_song"] = data
+            # NOTE:
+            #      Add youtube support later
             mp.play(data)
         except KeyboardInterrupt:
             mp.exit()
@@ -331,3 +333,5 @@ def main():
         except KeyboardInterrupt:
             mp.exit()
 
+# Psuedo was here
+    # wolf was here

@@ -6,6 +6,7 @@ There will be more updates soon, i am currently working on a spotify library, an
 # Using
 * add songs `~/Music`
 * import mpl after installing, or alternatively, you can run `player.py` directly with python
+* the config file will be in your user directory, under `mpl`
 * once you launch, it will tell you what do do
 
 ## In use
